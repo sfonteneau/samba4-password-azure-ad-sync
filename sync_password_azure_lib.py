@@ -54,10 +54,17 @@ def update_password(mail, pwd, pwdlastset):
     global mailadmin
     global passwordadmin
     global proxies
+    global dict_mail_pwdlastset
 
-    if not az:
-        az = AADInternals(mail=mailadmin,password=passwordadmin,proxies=proxies)
-    az.set_userpassword(hashnt=pwd,userprincipalname=mail)
+    try:
+        if not az:
+            az = AADInternals(mail=mailadmin,password=passwordadmin,proxies=proxies)
+        az.set_userpassword(hashnt=pwd,userprincipalname=mail)
+        syslog.syslog(syslog.LOG_WARNING, '[NOTICE] Updated password for %s' % mail)
+        dict_mail_pwdlastset[str(mail)]=str(pwdlastset)
+        open(filename,'w').write(json.dumps(dict_mail_pwdlastset))
+    except Exception as e:
+        syslog.syslog(syslog.LOG_WARNING, '[ERROR] %s : %s' % (mail,str(e)))
 
 
 
