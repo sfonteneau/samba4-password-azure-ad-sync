@@ -3,6 +3,7 @@ Installation
 
 Test
 =====
+ - apt-get install python3-pip git
  - git clone https://github.com/sfonteneau/samba4-password-azure-ad-sync.git
  - mv samba4-password-azure-ad-sync /opt/sync-azure
  - pip3 install -r /opt/sync-azure/requirements.txt

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import os
 import sys
 import syslog
 import json
@@ -30,14 +30,11 @@ dict_mail_pwdlastset={}
 if os.path.isfile(filename):
     dict_mail_pwdlastset = json.loads(open(filename,'r').read())
 
-## Load Google Configuration ##
-with open( config.get('google', 'service_json')) as data_file:
-  gaConfig = json.load(data_file)
-
-
 az = None
 mailadmin = config.get('common', 'mailadmin')
 passwordadmin = config.get('common', 'passwordadmin')
+
+domainazure = config.get('common', 'domainazure')
 
 proxiesconf = config.get('common', 'proxy')
 if proxiesconf:
@@ -87,10 +84,13 @@ def run():
     testpawd.lp = lp
 
     # Search all users
-    for user in samdb_loc.search(base=param_samba['adbase'], expression="(&(objectClass=user)(mail=*))", attrs=["mail","sAMAccountName","pwdLastSet"]):
-        mail = str(user["mail"])
+    for user in samdb_loc.search(base=param_samba['adbase'], expression=r"(&(objectClass=user)(UserPrincipalName=*))", attrs=["sAMAccountName","pwdLastSet","UserPrincipalName"]):
+        mail = str(user["UserPrincipalName"])
 
         pwdlastset = user.get('pwdLastSet','')
+
+        if not  mail.endswith('@' + domainazure.lower()):
+            continue
 
         if str(pwdlastset) != dict_mail_pwdlastset.get(mail,''):
 
@@ -101,9 +101,8 @@ def run():
             password = testpawd.get_account_attributes(samdb_loc,None,param_samba['basedn'],filter="(sAMAccountName=%s)" % str(user["sAMAccountName"]) ,scope=ldb.SCOPE_SUBTREE,attrs=[passwordattr],decrypt=False)
             if not passwordattr in password:
                 continue
-            password = str(password[passwordattr])
-            update_password(mail, password, pwdlastset)
-
+            hashnt = password[passwordattr][0].hex().upper()
+            update_password(mail, hashnt, pwdlastset)
     az = None
 
 
