@@ -15,3 +15,6 @@ Test
 You can try like this:
 
 python3 /opt/sync-azure/sync_password_azure.py
+log in syslog
+
+create a service with systemd
