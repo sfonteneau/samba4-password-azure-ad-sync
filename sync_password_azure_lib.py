@@ -34,7 +34,7 @@ az = None
 mailadmin = config.get('common', 'mailadmin')
 passwordadmin = config.get('common', 'passwordadmin')
 
-domainazure = config.get('common', 'domainazure')
+domainazure = config.get('common', 'domainazure').split(',')
 
 proxiesconf = config.get('common', 'proxy')
 if proxiesconf:
@@ -89,8 +89,13 @@ def run():
 
         pwdlastset = user.get('pwdLastSet','')
 
-        if not  mail.endswith('@' + domainazure.lower()):
+        match = False
+        for mailtest in domainazure:
+            if mail.endswith('@' + mailtest.lower()):
+                match = True
+        if not match :
             continue
+
 
         if str(pwdlastset) != dict_mail_pwdlastset.get(mail,''):
 
